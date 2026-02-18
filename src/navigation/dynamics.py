@@ -1,33 +1,25 @@
 ## main path equations ##
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as plt
+
+MU_Earth = 3.986004418e14  # gravitational parameter of Earth in m^3/s^2
+R_Earth = 6.371e6  # radius of Earth in meters
+
+def a_2bod(r: np.ndarray, mu: float = MU_Earth) -> np.ndarray:
+    """Calculate the acceleration due to gravity for the two-body problem."""
+    
+    r_norm = np.linalg.norm(r)
+    if r_norm == 0:
+        raise ValueError("Position normalcannot be zero.")
+    return -mu * r / r_norm**3
 
 
-def grav_acceleration(m, r):
-    """Calculate the gravitational acceleration on a mass m at distance r from a mass M."""
-    G = 6.67430e-11  # gravitational constant
-    return G * m / r**2
-
-
-def rhs_2bod(t, m, state):
+def rhs_2bod(t: float, state: np.ndarray, mu: float = MU_Earth) -> np.ndarray:
     """Calculate the right-hand side of the two-body problem."""
     r_vec = state[0:3]  # position vector
     v_vec = state[3:6]  # velocity vector
-    r = np.linalg.norm(r_vec)  # distance between the two bodies
-    v = np.linalg.norm(v_vec)  # speed of the body
-    a_vec = -grav_acceleration(m, r) * r_vec / r  # acceleration vector
-    
-    return v_vec, a_vec
+    a_vec = a_2bod(r_vec, mu)  # acceleration vector
+    return np.hstack((v_vec, a_vec))  # return combined velocity and acceleration
 
-def move_2bod(t, m, state):
-    """Calculate the new state of the system after a time step dt."""
-    v_vec, a_vec = rhs_2bod(t, m, state)
-    new_state = np.zeros_like(state)
-    new_state[0:3] = state[0:3] + v_vec * dt  # update position
-    new_state[3:6] = state[3:6] + a_vec * dt  # update velocity
-    
-    return new_state
 
 
     
