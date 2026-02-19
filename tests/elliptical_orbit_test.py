@@ -85,7 +85,6 @@ def test_elliptical_orbit():
     plt.title("Specific Energy over Time")
     plt.xlabel("Time Steps")
     plt.ylabel("Specific Energy [J/kg]")
-    plt.show()
     
 if __name__ == "__main__":
     test_elliptical_orbit()
