@@ -49,9 +49,9 @@ def test_range_measurement(plot = True):
     for i in range(num_steps + 1):
         
         rho = range_measurement(sc_state, r_st) # [m] range measurement from station to spacecraft
-        rho_true.append(rho)
+        rho_true.append(rho) # [m] store the true range measurement without noise
         rho_meas.append(rho + np.random.normal(0, sigma)) # add measurement noise
-        t.append(i*dt)
+        t.append(i*dt) # [s] time for plotting
 
         sc_state = propagate(sc_state, dt, mu=mu) # propagate the state by one time step
 
