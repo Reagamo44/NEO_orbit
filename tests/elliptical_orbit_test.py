@@ -30,7 +30,7 @@ def test_elliptical_orbit(plot: bool = True):
 
     dt = 60.0  # time step in seconds
     T = 2*np.pi*np.sqrt(a**3/mu) # orbital period for elliptical orbit
-    num_steps = round(4*T/dt) # simulate for 4 orbital periods
+    num_steps = int(np.round(4*T/dt)) # simulate for 4 orbital periods
     
     h0 = np.cross(r0, v0) # [m^2/s] specific angular momentum vector
     h0_norm = np.linalg.norm(h0) # [m^2/s] magnitude of the specific angular momentum
