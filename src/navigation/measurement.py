@@ -1,4 +1,7 @@
 
+## For now, it is assumed the Earth is not rotating and the station is fixed in ECI coordinates. 
+# In the future, Earth rotation and transform to ECEF coordinates can be added for more realistic measurements.
+
 import numpy as np
 from navigation.dynamics import R_Earth
 
