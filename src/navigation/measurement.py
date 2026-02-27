@@ -16,19 +16,34 @@ def range_measurement(state: np.ndarray, r_station: np.ndarray) -> float:
     """
     Compute the range measurement from the station to the object.
     """
+    state = np.asarray(state, dtype=float).reshape(-1) # ensure state is a 1D array of floats
+    if state.size != 6:
+        raise ValueError("state must be length 6: [rx, ry, rz, vx, vy, vz]")
+    
     r_object = state[0:3] # [m] position of the object in ECI coordinates
-
-    return (r_object - r_station), r_object # [m] range measurement
+    
+    r_station = np.asarray(r_station, dtype=float).reshape(3) # ensure station position is a 1D array of length 3
+    
+    dr = r_object - r_station # [m] range vector from station to object
+    return float(np.linalg.norm(dr)) # [m] range measurement (magnitude of the range vector)
 
 
 def range_jacobian(state: np.ndarray, r_station: np.ndarray) -> np.ndarray:
     """
     Compute the Jacobian of the range measurement with respect to the state.
     """
-    delta_r, r_object = range_measurement(state, r_station) # [m] range vector from station to object and object poisition
+    
+    state = np.asarray(state, dtype=float).reshape(-1) # ensure state is a 1D array of floats
+    if state.size != 6:
+        raise ValueError("state must be length 6: [rx, ry, rz, vx, vy, vz]")
+    
+    r_object = state[0:3] # [m] position of the object in ECI coordinates
+    r_station = np.asarray(r_station, dtype=float).reshape(3) # ensure station position is a 1D array of length 3
+    delta_r = r_object - r_station # [m] range vector from station to object
+
     rho = np.linalg.norm(delta_r) # [m] magnitude of the range vector
 
-    if rho == 0:
+    if rho < 1e-12:
         raise ValueError("Range cannot be zero for Jacobian computation.")
 
     H = np.zeros((1, 6)) # initialize Jacobian matrix
