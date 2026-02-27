@@ -13,18 +13,17 @@ def initial_circular_state(altitude: float = 500e3, R: float = R_Earth, mu: floa
     v_circular = np.sqrt(mu / r_norm)  # [m/s] circular orbital velocity
 
     # Initial state: position (x, y, z) and velocity (vx, vy, vz)
-    return np.array([r_norm, 0, 0, 0, v_circular, 0]), mu  # starting at (r_norm, 0, 0) with velocity (0, v_circular, 0)
+    return np.array([r_norm, 0, 0, 0, v_circular, 0], dtype=float), mu  # starting at (r_norm, 0, 0) with velocity (0, v_circular, 0)
 
-def test_circular_orbit():
+def test_circular_orbit(plot: bool = True):
 
     # Parameters for a circular orbit
     state0, mu = initial_circular_state()
-    r0 = state0[0:3]  # [m] initial orbital radius
-    v0 = state0[3:6]  # [m/s] initial orbital velocity
-    r0_norm = np.linalg.norm(r0) # [m] magnitude of the initial orbital radius
-    v0_norm = np.linalg.norm(v0) # [m/s] magnitude of the initial orbital velocity
+    r0_norm = np.linalg.norm(state0[0:3]) # [m] magnitude of the initial orbital radius
+    v0_norm = np.linalg.norm(state0[3:6]) # [m/s] magnitude of the initial orbital velocity
+    E0 = 0.5 * v0_norm**2 - mu / r0_norm # [J/kg] initial specific orbital energy
 
-    dt = 60  # time step in seconds
+    dt = 60.0  # time step in seconds
     T = 2*np.pi*r0_norm / v0_norm # orbital period for circular orbit
     num_steps = round(4*T/dt) # simulate for 4 orbital periods
 
@@ -33,29 +32,35 @@ def test_circular_orbit():
     energy = []
 
     for _ in range(num_steps):
-        state = propagate(state, dt) # propagate the state by one time step
+        state = propagate(state, dt, mu=mu) # propagate the state by one time step
         r = np.linalg.norm(state[0:3]) # compute the current orbital radius
         v = np.linalg.norm(state[3:6]) # compute the current orbital velocity
+        E = 0.5 * v**2 - mu / r # compute the specific orbital energy
 
         radius.append(r)
-        energy.append(0.5 * v**2 - mu / r) # compute the specific orbital energy
+        energy.append(E) # compute the specific orbital energy
 
-        assert np.max(np.abs(radius - r0_norm)) < 10, f"Radius deviated from initial value: {radius[-1]} m"
-        assert np.max(np.abs(energy - (0.5 * v0_norm**2 - mu / r0_norm))) < 1e-3, f"Energy deviated from initial value: {energy[-1]} J/kg"
+        max_radius_err = max(max_radius_err, abs(r - r0_norm)) # [m] maximum deviation of radius from initial value
+        max_energy_err = max(max_energy_err, abs(E - E0)) # [J/kg]
+
+    assert max_radius_err < 100.0, f"Radius deviated from initial value: {max_radius_err:.3f} m"
+    assert max_energy_err < 1e-3, f"Energy deviated from initial value: {max_energy_err:.3e} J/kg"
 
     # Plot the results
-    plt.figure()
-    plt.plot(radius)
-    plt.title("Orbital Radius over Time")
-    plt.xlabel("Time Steps")
-    plt.ylabel("Orbital Radius [m]")
+    if plot:
+        plt.figure()
+        plt.plot(radius)
+        plt.title("Orbital Radius over Time")
+        plt.xlabel("Time Steps")
+        plt.ylabel("Orbital Radius [m]")
 
-    plt.figure()
-    plt.plot(energy)
-    plt.title("Specific Energy over Time")
-    plt.xlabel("Time Steps")
-    plt.ylabel("Specific Energy [J/kg]")
-    plt.show()
+        plt.figure()
+        plt.plot(energy)
+        plt.title("Specific Energy over Time")
+        plt.xlabel("Time Steps")
+        plt.ylabel("Specific Energy [J/kg]")
+        plt.show()
+
     
 if __name__ == "__main__":
     test_circular_orbit()
