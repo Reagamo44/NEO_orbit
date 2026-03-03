@@ -1,14 +1,12 @@
 # Extended Kalman Filter (EKF) implementation for orbit determination.
 
 import numpy as np
-import scipy as sp
 
-from navigation.dynamics import rhs_2bod, MU_Earth
 from navigation.propagate import propagate, numerical_jacobian
 from navigation.measurement import range_measurement, range_jacobian
 
 
-def ekf_step(state0, P, dt, *, mu, Q = None, jac_eps=1e-6):
+def ekf_predict(state0, P, dt, *, mu, Q = None, jac_eps=1e-6):
     """
     Perform one step of the EKF: predict and update.
     """
@@ -72,8 +70,13 @@ def ekf_update(x_pred, P_pred, z_meas, r_station, *, R):
     P_upd = (I - KH) @ P @ (I - KH).T + (K * R) @ K.T # Update the covariance using the Joseph form for numerical stability
     P_upd = (P_upd + P_upd.T) / 2 # Ensure the updated covariance matrix remains symmetric
 
-    return x_upd, P_upd # Return the updated state and covariance
+    return x_upd, P_upd, y, S # Return the updated state and covariance
 
-
-
+def ekf_step_range(state0, P, dt, z_meas, r_station, *, mu, R, Q = None, jac_eps=1e-6):
+    '''Perform one full EKF step: predict and update with a range measurement.'''
+    
+    x_pred, P_pred = ekf_predict(state0, P, dt, mu=mu, Q=Q, jac_eps=jac_eps) # Perform the prediction step
+    x_upd, P_upd, y, S = ekf_update(x_pred, P_pred, z_meas, r_station, R=R) # Perform the update step with the range measurement
+    
+    return x_upd, P_upd, y, S # Return the updated state and covariance after the EKF step
 
